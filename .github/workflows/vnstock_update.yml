@@ -1,0 +1,33 @@
+name: Update VNStock Data
+
+on:
+  schedule:
+    - cron: "0 10 * * *"   # 17h VN time (UTC+7)
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Write Google credentials
+      run: |
+        echo '${{ secrets.GOOGLE_CREDENTIALS }}' > google_credentials.json
+
+    - name: Run script
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: python update_vnstock.py
