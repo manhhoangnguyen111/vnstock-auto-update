@@ -19,7 +19,7 @@ SPREADSHEET_ID = "1o4OoH78lGVln6Alm15_uh97PPu4eAdr74JN0LEp3u90"
 
 # =========================
 
-# GOOGLE SHEETS CONNECT
+# GOOGLE SHEETS
 
 # =========================
 
@@ -33,37 +33,33 @@ creds = ServiceAccountCredentials.from_json_keyfile_name(
 )
 
 client = gspread.authorize(creds)
-
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
 # =========================
 
-# GET TODAY DATA
+# GET DATA
 
 # =========================
 
 today = datetime.today().strftime("%Y-%m-%d")
 
-print("Fetching data for:", today)
+print("Fetching data:", today)
 
-try:
 stock = Vnstock().stock(symbol="VN30", source="VCI")
+
 df = stock.quote.history(
 start=today,
 end=today,
 interval="1D"
 )
-except Exception as e:
-print("VNStock error:", e)
-exit()
 
 if df.empty:
-print("No new data today")
+print("No new data")
 exit()
 
 # =========================
 
-# CHECK LAST ROW
+# CHECK LAST DATE
 
 # =========================
 
@@ -76,13 +72,13 @@ last_date = existing[-1][0]
 
 ```
 if new_date == last_date:
-    print("Already updated today")
+    print("Already updated")
     exit()
 ```
 
 # =========================
 
-# PREPARE DATA
+# PREPARE ROW
 
 # =========================
 
@@ -99,12 +95,25 @@ row_data["volume"]
 
 # =========================
 
-# APPEND TO SHEET
+# APPEND
 
 # =========================
 
-try:
 sheet.append_row(row)
+
 print("New row added:", row)
-except Exception as e:
-print("Google Sheets error:", e)
+
+# =========================
+
+# TELEGRAM
+
+# =========================
+
+if TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
+
+```
+message = (
+    f"📈 VN30 Update\n"
+    f"Date: {new_date}\n"
+    f"Close: {row_data['close']}\n"
+```
