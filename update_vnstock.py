@@ -48,13 +48,63 @@ print("Fetching data for:", today)
 
 try:
 stock = Vnstock().stock(symbol="VN30", source="VCI")
-
-```
 df = stock.quote.history(
-    start=today,
-    end=today,
-    interval="1D"
+start=today,
+end=today,
+interval="1D"
 )
+except Exception as e:
+print("VNStock error:", e)
+exit()
+
+if df.empty:
+print("No new data today")
+exit()
+
+# =========================
+
+# CHECK LAST ROW
+
+# =========================
+
+existing = sheet.get_all_values()
+
+new_date = pd.to_datetime(df.iloc[-1]["time"]).strftime("%Y-%m-%d")
+
+if len(existing) > 1:
+last_date = existing[-1][0]
+
+```
+if new_date == last_date:
+    print("Already updated today")
+    exit()
 ```
 
-except
+# =========================
+
+# PREPARE DATA
+
+# =========================
+
+row_data = df.iloc[-1]
+
+row = [
+new_date,
+row_data["open"],
+row_data["high"],
+row_data["low"],
+row_data["close"],
+row_data["volume"]
+]
+
+# =========================
+
+# APPEND TO SHEET
+
+# =========================
+
+try:
+sheet.append_row(row)
+print("New row added:", row)
+except Exception as e:
+print("Google Sheets error:", e)
